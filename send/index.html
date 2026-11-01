@@ -94,15 +94,20 @@ function syncList(){
 async function syncDown(){
   var m=await syncList();
   if(!m||!C)return;
-  if(Object.keys(m).length===0){
-    C.forEach(function(c){if(done[c.p])pushSet(c,true);});
-    return;
-  }
   var changed=false,now=Date.now();
-  C.forEach(function(c){
+  var byd={};
+  C.forEach(function(c){byd[digits(c)]=c;});
+  Object.keys(m).forEach(function(d){
+    var row=m[d];
+    var sv=(row&&typeof row==='object')?!!row.s:!!row;
+    var c=byd[d];
+    if(!c){
+      var nm=(row&&typeof row==='object'&&row.n)?row.n:('+'+d);
+      c={n:nm,f:nm.split(' ')[0],p:'+'+d,c:'new'};
+      C.push(c);byd[d]=c;changed=true;
+    }
     if(touched[c.p]&&now-touched[c.p]<90000)return;
-    var d=digits(c);
-    if(Object.prototype.hasOwnProperty.call(m,d)&&!!done[c.p]!==!!m[d]){done[c.p]=!!m[d];changed=true;}
+    if(!!done[c.p]!==sv){done[c.p]=sv;changed=true;}
   });
   if(changed){save();render();}else{upd();}
 }
