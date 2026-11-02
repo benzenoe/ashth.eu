@@ -24,6 +24,12 @@ tr.sent a.wa{background:#B9C9B7}
 label.done{font-size:13px;color:#567;white-space:nowrap}
 header a.sheet{color:#fff;font-size:13px;opacity:.92;margin-left:auto;white-space:nowrap}
 .note a{color:#2B6166;font-weight:600}
+details.howto{background:#fff;border:1px solid #D9DED7;border-radius:8px;padding:12px 16px;margin-bottom:14px}
+details.howto summary{cursor:pointer;font-weight:600;color:var(--teal)}
+details.howto ol{margin:10px 0 4px;padding-left:22px}
+details.howto li{margin-bottom:7px}
+details.howto a{color:#2B6166;font-weight:600}
+details.howto .sub{font-size:13px;color:#566}
 #gate{max-width:440px;margin:60px auto}
 #gate button{margin-top:10px;width:100%;padding:11px;font-size:15px;font-weight:600;color:#fff;background:var(--teal);border:0;border-radius:6px;cursor:pointer}
 #gate .err{color:#A33;font-size:14px;margin-top:8px;display:none}
@@ -57,6 +63,15 @@ Kuntal Shah-Narain
 ASHTH · Mine. Not Mined.</textarea>
 <div class="note"><b>Nothing sends by itself.</b> Each green button opens WhatsApp with the message prefilled for that guest — you review and press send there. A row is ticked automatically when you open its chat; untick if you didn't send. Progress is shared: every tick is saved to the <a href="https://docs.google.com/spreadsheets/d/1fTQH67nyAZMqQS3JcWmZXg3COwKcRqVc8GF9OebMbxc/edit?gid=1443156798#gid=1443156798" target="_blank" rel="noopener">"Send Progress" tab of the ASHTH Launch RSVPs Google Sheet</a> and syncs between everyone's devices. To add a guest, type their phone number (digits with country code) and name into a new row of that sheet — they appear here automatically.</div>
 </div>
+<details class="howto"><summary>First time? How to connect WhatsApp on this device</summary>
+<ol>
+<li><b>On a phone:</b> the green buttons open the WhatsApp app directly. If it's not installed, get it free from the <a href="https://apps.apple.com/app/whatsapp-messenger/id310633997" target="_blank" rel="noopener">App Store (iPhone)</a> or <a href="https://play.google.com/store/apps/details?id=com.whatsapp" target="_blank" rel="noopener">Google Play (Android)</a>.</li>
+<li><b>On a Mac or Windows computer:</b> download the free WhatsApp app from <a href="https://www.whatsapp.com/download" target="_blank" rel="noopener">whatsapp.com/download</a> (on a Mac you can also search "WhatsApp" in the App Store; on Windows, the Microsoft Store).</li>
+<li><b>No install needed:</b> you can also use WhatsApp in the browser at <a href="https://web.whatsapp.com" target="_blank" rel="noopener">web.whatsapp.com</a>.</li>
+<li><b>Link it to your phone (first time only):</b> open WhatsApp on the computer — it shows a QR code. On your phone open WhatsApp → <b>Settings</b> → <b>Linked Devices</b> → <b>Link a Device</b>, and scan the QR code on the computer screen.</li>
+</ol>
+<div class="sub">Once linked, every green button below opens a chat with the invitation pre-written — you just review and press send.</div>
+</details>
 <div class="panel"><input type="search" id="q" placeholder="Search name or number…"></div>
 <table><thead><tr><th>#</th><th>Name</th><th>Number</th><th></th><th>Sent</th></tr></thead><tbody id="tb"></tbody></table>
 </div>
