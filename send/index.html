@@ -22,13 +22,15 @@ a.wa{display:inline-block;background:#25D366;color:#fff;text-decoration:none;fon
 tr.sent a.wa{background:#B9C9B7}
 .cc{font-size:12px;color:#789}
 label.done{font-size:13px;color:#567;white-space:nowrap}
+header a.sheet{color:#fff;font-size:13px;opacity:.92;margin-left:auto;white-space:nowrap}
+.note a{color:#2B6166;font-weight:600}
 #gate{max-width:440px;margin:60px auto}
 #gate button{margin-top:10px;width:100%;padding:11px;font-size:15px;font-weight:600;color:#fff;background:var(--teal);border:0;border-radius:6px;cursor:pointer}
 #gate .err{color:#A33;font-size:14px;margin-top:8px;display:none}
 #gate label{display:flex;gap:8px;align-items:center;font-size:13px;color:#567;margin-top:10px}
 [hidden]{display:none!important}
 </style></head><body>
-<header><h1>ASHTH Luxembourg Launch — WhatsApp send sheet</h1><span id="prog"></span></header>
+<header><h1>ASHTH Luxembourg Launch — WhatsApp send sheet</h1><span id="prog"></span><a class="sheet" href="https://docs.google.com/spreadsheets/d/1fTQH67nyAZMqQS3JcWmZXg3COwKcRqVc8GF9OebMbxc/edit?gid=1443156798#gid=1443156798" target="_blank" rel="noopener">Guest list (Google Sheet) ↗</a></header>
 <main>
 <div id="gate" class="panel"><b>Private — enter the passphrase</b>
 <input type="password" id="pw" placeholder="Passphrase" autocomplete="current-password">
@@ -53,7 +55,7 @@ By invitation only — we would love to know if you can join us.
 
 Kuntal Shah-Narain
 ASHTH · Mine. Not Mined.</textarea>
-<div class="note"><b>Nothing sends by itself.</b> Each green button opens WhatsApp with the message prefilled for that guest — you review and press send there. A row is ticked automatically when you open its chat; untick if you didn't send. Progress is shared: every tick is saved to the "Send Progress" tab of the ASHTH Launch RSVPs Google Sheet and syncs between everyone's devices.</div>
+<div class="note"><b>Nothing sends by itself.</b> Each green button opens WhatsApp with the message prefilled for that guest — you review and press send there. A row is ticked automatically when you open its chat; untick if you didn't send. Progress is shared: every tick is saved to the <a href="https://docs.google.com/spreadsheets/d/1fTQH67nyAZMqQS3JcWmZXg3COwKcRqVc8GF9OebMbxc/edit?gid=1443156798#gid=1443156798" target="_blank" rel="noopener">"Send Progress" tab of the ASHTH Launch RSVPs Google Sheet</a> and syncs between everyone's devices. To add a guest, type their phone number (digits with country code) and name into a new row of that sheet — they appear here automatically.</div>
 </div>
 <div class="panel"><input type="search" id="q" placeholder="Search name or number…"></div>
 <table><thead><tr><th>#</th><th>Name</th><th>Number</th><th></th><th>Sent</th></tr></thead><tbody id="tb"></tbody></table>
