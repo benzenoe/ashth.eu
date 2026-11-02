@@ -142,7 +142,12 @@ var tb=document.getElementById('tb'),tpl=document.getElementById('tpl'),q=docume
 var done={};try{done=JSON.parse(localStorage.getItem('ashth-sent')||'{}');}catch(e){}
 function save(){try{localStorage.setItem('ashth-sent',JSON.stringify(done));}catch(e){}upd();}
 function upd(){var n=Object.keys(done).filter(function(k){return done[k];}).length;prog.textContent=n+' of '+C.length+' sent';}
-function link(c){return 'https://wa.me/'+c.p.replace(/\D/g,'')+'?text='+encodeURIComponent(tpl.value.split('{first}').join(c.f));}
+function link(c){
+  var msg=tpl.value.split('{first}').join(c.f);
+  var personal='https://www.ashth.eu/#i='+digits(c)+'&n='+encodeURIComponent(c.f).replace(/%20/g,'+');
+  msg=msg.split('https://www.ashth.eu/').join(personal);
+  return 'https://wa.me/'+c.p.replace(/\D/g,'')+'?text='+encodeURIComponent(msg);
+}
 function render(){
   var f=(q.value||'').toLowerCase();tb.innerHTML='';
   C.forEach(function(c,i){

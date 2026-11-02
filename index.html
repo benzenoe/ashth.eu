@@ -437,6 +437,7 @@ details.cal>summary::-webkit-details-marker{display:none}
         <p class="bio">A fourth-generation jeweller from a prominent diamond family and an international intellectual-property lawyer, Kuntal leads ASHTH in Europe from Luxembourg. She will be your host for the evening.</p>
         <p>This is a private evening, and places are limited to the guests on our list. Kindly confirm your attendance below.</p>
         <form class="rsvpform" id="rsvpForm" novalidate>
+          <input type="hidden" name="ref" value="">
           <div class="frow">
             <div class="field"><label for="f-name">Full name *</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
             <div class="field"><label for="f-email">Email *</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
@@ -625,7 +626,23 @@ details.cal>summary::-webkit-details-marker{display:none}
   var rf=document.getElementById('rsvpForm');
   if(rf){
     var FR='https://docs.google.com/forms/d/e/1FAIpQLSdZXSjjWaHFVzyuZKDRFU8nIdAMtQJSQZZdwFMtIRsWRZ3vFA/formResponse';
-    var MAP={name:'entry.712986850',email:'entry.240435978',phone:'entry.2059053622',guests:'entry.682211906',address:'entry.1890434778',dietary:'entry.1199824087',message:'entry.903531916'};
+    var MAP={name:'entry.712986850',email:'entry.240435978',phone:'entry.2059053622',guests:'entry.682211906',address:'entry.1890434778',dietary:'entry.1199824087',message:'entry.903531916',ref:'entry.1450492579'};
+    /* Personalised invite links carry the guest in the #fragment (never sent to any server):
+       https://www.ashth.eu/#i=<phone digits>&n=<first name>  ->  prefill + scroll to RSVP. */
+    try{
+      var h=location.hash.replace(/^#/,'');
+      if(h.indexOf('i=')>-1){
+        var hp=new URLSearchParams(h);
+        var hd=(hp.get('i')||'').replace(/\D/g,'');
+        if(hd.length>=8){
+          rf.elements.ref.value=hd;
+          if(!rf.elements.phone.value)rf.elements.phone.value='+'+hd;
+          var hn=(hp.get('n')||'').trim();
+          if(hn&&!rf.elements.name.value)rf.elements.name.value=hn;
+          setTimeout(function(){var s=document.getElementById('rsvp');if(s)s.scrollIntoView({behavior:'smooth',block:'start'});},900);
+        }
+      }
+    }catch(e){}
     rf.addEventListener('submit',function(ev){
       ev.preventDefault();
       var err=document.getElementById('rsvpErr'),btn=document.getElementById('rsvpSubmit');
