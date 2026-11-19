@@ -643,6 +643,22 @@ details.cal>summary::-webkit-details-marker{display:none}
         }
       }
     }catch(e){}
+    /* Personal links for email guests (no phone number on the guest list):
+       https://www.ashth.eu/#c=<letters-only code>&n=<first name>. The code is in the guest list
+       (Send Progress, column M) and is sent as "inv-<code>" in the Invite ref field. Letters only:
+       the sheet script reads any digits in that field as a phone number. */
+    try{
+      if(!rf.elements.ref.value){
+        var cp=new URLSearchParams(location.hash.replace(/^#/,''));
+        var cc=(cp.get('c')||'').toLowerCase().replace(/[^a-z]/g,'');
+        if(cc.length>=5){
+          rf.elements.ref.value='inv-'+cc;
+          var cn=(cp.get('n')||'').trim();
+          if(cn&&!rf.elements.name.value)rf.elements.name.value=cn;
+          setTimeout(function(){var s=document.getElementById('rsvp');if(s)s.scrollIntoView({behavior:'smooth',block:'start'});},900);
+        }
+      }
+    }catch(e){}
     /* Where the visitor came from, when there is no personal invite. It is read in memory only
        (nothing is stored on the device) and sent in the same "Invite ref" field.
        The Meta ad links here with ?utm_source=meta. The tag must never contain digits:
