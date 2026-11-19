@@ -643,6 +643,28 @@ details.cal>summary::-webkit-details-marker{display:none}
         }
       }
     }catch(e){}
+    /* Where the visitor came from, when there is no personal invite. It is read in memory only
+       (nothing is stored on the device) and sent in the same "Invite ref" field.
+       The Meta ad links here with ?utm_source=meta. The tag must never contain digits:
+       the sheet script reads any digits in that field as a guest's phone number. */
+    try{
+      if(!rf.elements.ref.value){
+        var q=new URLSearchParams(location.search);
+        var us=(q.get('utm_source')||'').toLowerCase().replace(/[^a-z_-]/g,'');
+        var ua=navigator.userAgent||'';
+        var app=/Instagram/.test(ua)?'instagram':(/FBAN|FBAV|FB_IAB|FBIOS/.test(ua)?'facebook':'');
+        var rh='';try{rh=document.referrer?new URL(document.referrer).hostname:'';}catch(e2){}
+        if(!app&&/(^|\.)instagram\.com$/.test(rh))app='instagram';
+        if(!app&&/(^|\.)(facebook\.com|fb\.com|messenger\.com)$/.test(rh))app='facebook';
+        var tag='';
+        if(/^(meta|facebook|fb|instagram|ig|msg|an|threads)$/.test(us)){
+          if(!app)app=(us==='ig'||us==='instagram')?'instagram':((us==='fb'||us==='facebook')?'facebook':'');
+          tag='meta-ad'+(app?' '+app:'');
+        }else if(us){tag='utm '+us;}
+        else if(q.has('fbclid')||app){tag='facebook/instagram link'+(app?' '+app:'');}
+        rf.elements.ref.value=tag.replace(/\d/g,'');
+      }
+    }catch(e){}
     rf.addEventListener('submit',function(ev){
       ev.preventDefault();
       var err=document.getElementById('rsvpErr'),btn=document.getElementById('rsvpSubmit');
