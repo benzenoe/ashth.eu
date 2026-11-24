@@ -41,6 +41,7 @@ details.howto .sub{font-size:13px;color:#566}
 #gate .err{color:#A33;font-size:14px;margin-top:8px;display:none}
 #gate label{display:flex;gap:8px;align-items:center;font-size:13px;color:#567;margin-top:10px}
 [hidden]{display:none!important}
+.modes{display:flex;gap:8px;margin:0 0 12px}.modes button{flex:1;padding:11px;font-size:14px;font-weight:600;border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;cursor:pointer}.modes button.on{background:var(--teal);color:#fff}
 </style></head><body>
 <header><h1>ASHTH Luxembourg Launch — WhatsApp send sheet</h1><span id="prog"></span><a class="sheet" href="https://docs.google.com/spreadsheets/d/1fTQH67nyAZMqQS3JcWmZXg3COwKcRqVc8GF9OebMbxc/edit?gid=1443156798#gid=1443156798" target="_blank" rel="noopener">Guest list (Google Sheet) ↗</a></header>
 <main>
@@ -51,7 +52,27 @@ details.howto .sub{font-size:13px;color:#566}
 <div class="err" id="err">That passphrase didn&rsquo;t work &mdash; please try again.</div>
 </div>
 <div id="app" hidden>
-<div class="panel"><b>Message template &nbsp;<small>({first} becomes the guest's first name — edit freely, links update live)</small></b>
+<div class="modes"><button type="button" id="mInv" class="on">Invitation</button><button type="button" id="mFilm">Film — no RSVP yet</button></div>
+<div class="panel" id="filmPanel" hidden><b>Film message &nbsp;<small>({first} = first name · {film} = their personal film link · {rsvp} = their personal RSVP link)</small></b>
+<textarea id="tplFilm">Dear {first},
+
+Here is our short film for the ASHTH Luxembourg Launch. We would love to see you there:
+{film}
+
+Thursday 3 December, 5–10 PM
+MOB-ART studio, 19a Avenue de la Porte-Neuve, Luxembourg
+Champagne · Wine · Canapés · Live Music
+
+Just in time for the holidays: lab-grown diamond jewellery at exceptional prices, direct from the ASHTH workshop.
+
+Kindly let us know if you can join us:
+{rsvp}
+
+Kuntal
+ASHTH · Mine. Not Mined.</textarea>
+<div class="note"><b>Who is listed:</b> guests who were sent the WhatsApp/SMS invitation and have <b>not RSVP'd</b> (RSVPs update from the sheet every 45 s). Each <b>Send film</b> button opens WhatsApp with this message for that guest — you review and press send. It is logged in the sheet (Send Progress, column P "Film WhatsApp"). <b>Send from the ASHTH Luxembourg number (+352 661 860 282):</b> open this page on the phone that runs WhatsApp Business with that number, or on a computer linked to it.</div>
+</div>
+<div class="panel" id="invPanel"><b>Message template &nbsp;<small>({first} becomes the guest's first name — edit freely, links update live)</small></b>
 <textarea id="tpl">Dear {first},
 
 You are warmly invited to the ASHTH Luxembourg Launch — a private jewellery evening of contemporary design, exceptional craftsmanship and conscious luxury.
@@ -89,7 +110,7 @@ var PAYLOAD={salt:"dzCcMh7fu5ZOMWqNadyGSw==",iv:"1aSEFy7zJ07DbzyM",data:"D8l7wpy
 var C=null;
 var API='https://script.google.com/macros/s/AKfycbxiHZ6ortMo3PuUnttFQWG_Ush2nDe5kwSBA8b0xhKaihfrpyXwW4O_LcdYmwzamGHi/exec';
 var TOK=null;
-var touched={};
+var touched={};var MODE='inv';var rsvp={};var film={};try{film=JSON.parse(localStorage.getItem('ashth-film')||'{}');}catch(e){}
 function b64(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0);});}
 async function apiTok(pass){
   var enc=new TextEncoder();
@@ -98,10 +119,11 @@ async function apiTok(pass){
   return Array.from(new Uint8Array(sig)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
 function digits(c){return c.p.replace(/\D/g,'');}
-function pushSet(c,sent){
-  touched[c.p]=Date.now();
+function pushSet(c,sent,kind){
+  touched[(kind||'')+c.p]=Date.now();
   if(!TOK)return;
-  try{fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({t:TOK,a:'set',p:digits(c),s:sent?'1':'0',n:c.n}).toString()}).catch(function(){});}catch(e){}
+  var b={t:TOK,a:'set',p:digits(c),s:sent?'1':'0',n:c.n};if(kind)b.f=kind;
+  try{fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(b).toString()}).catch(function(){});}catch(e){}
 }
 function syncList(){
   return new Promise(function(res){
@@ -131,6 +153,10 @@ async function syncDown(){
       c={n:nm,f:nm.split(' ')[0],p:'+'+d,c:'new'};
       C.push(c);byd[d]=c;changed=true;
     }
+    if(row&&typeof row==='object'){
+      var rv=String(row.r||'');if((rsvp[c.p]||'')!==rv){rsvp[c.p]=rv;changed=true;}
+      if(!(touched['film'+c.p]&&now-touched['film'+c.p]<90000)&&('v' in row)&&!!film[c.p]!==!!row.v){film[c.p]=!!row.v;changed=true;}
+    }
     if(touched[c.p]&&now-touched[c.p]<90000)return;
     if(!!done[c.p]!==sv){done[c.p]=sv;changed=true;}
   });
@@ -145,20 +171,30 @@ async function decrypt(pass){
 }
 var tb=document.getElementById('tb'),tpl=document.getElementById('tpl'),q=document.getElementById('q'),prog=document.getElementById('prog');
 var done={};try{done=JSON.parse(localStorage.getItem('ashth-sent')||'{}');}catch(e){}
-function save(){try{localStorage.setItem('ashth-sent',JSON.stringify(done));}catch(e){}upd();}
-function upd(){var n=Object.keys(done).filter(function(k){return done[k];}).length;prog.textContent=n+' of '+C.length+' sent';}
+function save(){try{localStorage.setItem('ashth-sent',JSON.stringify(done));localStorage.setItem('ashth-film',JSON.stringify(film));}catch(e){}upd();}
+function filmList(){return C.filter(function(c){return done[c.p]&&!rsvp[c.p];});}
+function upd(){
+  if(MODE==='film'){var L=filmList();prog.textContent=L.filter(function(c){return film[c.p];}).length+' of '+L.length+' films sent (invited, no RSVP)';return;}
+  var n=Object.keys(done).filter(function(k){return done[k];}).length;prog.textContent=n+' of '+C.length+' sent';}
 function msgFor(c){
   var msg=tpl.value.split('{first}').join(c.f);
   var personal='https://www.ashth.eu/#i='+digits(c)+'&n='+encodeURIComponent(c.f).replace(/%20/g,'+');
   return msg.split('https://www.ashth.eu/').join(personal);
 }
+function firstParam(c){return encodeURIComponent(c.f).replace(/%20/g,'+');}
+function filmMsgFor(c){
+  var h='#i='+digits(c)+'&n='+firstParam(c);
+  return document.getElementById('tplFilm').value.split('{first}').join(c.f)
+    .split('{film}').join('https://www.ashth.eu/film/'+h).split('{rsvp}').join('https://www.ashth.eu/'+h);
+}
 function link(c){
-  return 'https://wa.me/'+c.p.replace(/\D/g,'')+'?text='+encodeURIComponent(msgFor(c));
+  return 'https://wa.me/'+c.p.replace(/\D/g,'')+'?text='+encodeURIComponent(MODE==='film'?filmMsgFor(c):msgFor(c));
 }
 function smsLink(c){
   var ua=navigator.userAgent;
-  if(/iPhone|iPad|iPod/.test(ua))return 'sms:+'+digits(c)+'&body='+encodeURIComponent(msgFor(c));
-  if(/Android/.test(ua))return 'sms:+'+digits(c)+'?body='+encodeURIComponent(msgFor(c));
+  var body=MODE==='film'?filmMsgFor(c):msgFor(c);
+  if(/iPhone|iPad|iPod/.test(ua))return 'sms:+'+digits(c)+'&body='+encodeURIComponent(body);
+  if(/Android/.test(ua))return 'sms:+'+digits(c)+'?body='+encodeURIComponent(body);
   return 'sms:+'+digits(c);
 }
 var toastTm=null;
@@ -169,31 +205,45 @@ function toast(t){
 }
 function render(){
   var f=(q.value||'').toLowerCase();tb.innerHTML='';
-  C.forEach(function(c,i){
+  var F=MODE==='film', D=F?film:done, list=F?filmList():C;
+  list.forEach(function(c,i){
     if(f&&c.n.toLowerCase().indexOf(f)<0&&c.p.indexOf(f)<0)return;
-    var tr=document.createElement('tr');if(done[c.p])tr.className='sent';
+    var tr=document.createElement('tr');if(D[c.p])tr.className='sent';
     var noWa=(c.w===0);
+    var label=noWa?(F?'Send film in Messages':'Open in Messages'):(F?'Send film on WhatsApp':'Open in WhatsApp');
     tr.innerHTML='<td>'+(i+1)+'</td><td class="nm">'+c.n+' <span class="cc">'+c.c+'</span></td><td>'+c.p+'</td>'+
-      '<td><a class="'+(noWa?'sm':'wa')+'"'+(noWa?'':' target="_blank"')+' rel="noopener" href="#">'+(noWa?'Open in Messages':'Open in WhatsApp')+'</a></td>'+
-      '<td><label class="done"><input type="checkbox" '+(done[c.p]?'checked':'')+'></label></td>';
+      '<td><a class="'+(noWa?'sm':'wa')+'"'+(noWa?'':' target="_blank"')+' rel="noopener" href="#">'+label+'</a></td>'+
+      '<td><label class="done"><input type="checkbox" '+(D[c.p]?'checked':'')+'></label></td>';
     var a=tr.querySelector('a');
     a.addEventListener('click',function(e){
       a.href=noWa?smsLink(c):link(c);
       if(noWa){
-        try{navigator.clipboard.writeText(msgFor(c));}catch(e2){}
-        toast(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)?'Opening Messages — invitation prefilled (paste it if the box is empty)':'Message copied — paste it into Messages with ⌘V and send');
+        try{navigator.clipboard.writeText(F?filmMsgFor(c):msgFor(c));}catch(e2){}
+        toast(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)?'Opening Messages — message prefilled (paste it if the box is empty)':'Message copied — paste it into Messages with ⌘V and send');
       }
-      done[c.p]=true;tr.className='sent';tr.querySelector('input').checked=true;save();pushSet(c,true);
+      D[c.p]=true;tr.className='sent';tr.querySelector('input').checked=true;save();pushSet(c,true,F?'film':'');
     });
-    tr.querySelector('input').addEventListener('change',function(e){done[c.p]=e.target.checked;tr.className=e.target.checked?'sent':'';save();pushSet(c,e.target.checked);});
+    tr.querySelector('input').addEventListener('change',function(e){D[c.p]=e.target.checked;tr.className=e.target.checked?'sent':'';save();pushSet(c,e.target.checked,F?'film':'');});
     tb.appendChild(tr);
   });
+  if(F&&!list.length){tb.innerHTML='<tr><td colspan="5">Loading RSVPs from the sheet… (or everyone invited has already RSVP\'d)</td></tr>';}
+}
+function setMode(m){
+  MODE=m;try{localStorage.setItem('ashth-mode',m);}catch(e){}
+  document.getElementById('mInv').className=m==='inv'?'on':'';document.getElementById('mFilm').className=m==='film'?'on':'';
+  document.getElementById('invPanel').hidden=m!=='inv';document.getElementById('filmPanel').hidden=m!=='film';
+  render();upd();
 }
 function boot(contacts,pass){
   C=contacts;
   document.getElementById('gate').hidden=true;
   document.getElementById('app').hidden=false;
-  q.addEventListener('input',render);render();upd();
+  q.addEventListener('input',render);
+  document.getElementById('mInv').addEventListener('click',function(){setMode('inv');});
+  document.getElementById('mFilm').addEventListener('click',function(){setMode('film');});
+  document.getElementById('tplFilm').addEventListener('input',function(){});
+  var m0='inv';try{m0=localStorage.getItem('ashth-mode')||'inv';}catch(e){}
+  setMode(m0);
   apiTok(pass).then(function(t){TOK=t;syncDown();setInterval(syncDown,45000);});
 }
 async function tryUnlock(pass,remember){
