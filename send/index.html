@@ -235,7 +235,7 @@ function render(){
   if(F&&!list.length){tb.innerHTML='<tr><td colspan="5">Loading RSVPs from the sheet… (or everyone invited has already RSVP\'d)</td></tr>';}
 }
 function setMode(m){
-  MODE=m;try{localStorage.setItem('ashth-mode',m);}catch(e){}
+  MODE=m;try{localStorage.setItem('ashth-mode',m);history.replaceState(null,'',m==='film'?'#film':'#invite');}catch(e){}
   document.getElementById('mInv').className=m==='inv'?'on':'';document.getElementById('mFilm').className=m==='film'?'on':'';
   document.getElementById('invPanel').hidden=m!=='inv';document.getElementById('filmPanel').hidden=m!=='film';
   render();upd();
@@ -249,7 +249,10 @@ function boot(contacts,pass){
   document.getElementById('mFilm').addEventListener('click',function(){setMode('film');});
   document.getElementById('tplFilm').addEventListener('input',function(){});
   var m0='inv';try{m0=localStorage.getItem('ashth-mode')||'inv';}catch(e){}
+  /* Direct links: ashth.eu/send/#film opens the film list, ashth.eu/send/#invite the invitations. */
+  if(/^#film/i.test(location.hash))m0='film';else if(/^#invit/i.test(location.hash))m0='inv';
   setMode(m0);
+  window.addEventListener('hashchange',function(){if(/^#film/i.test(location.hash))setMode('film');else if(/^#invit/i.test(location.hash))setMode('inv');});
   apiTok(pass).then(function(t){TOK=t;syncDown();setInterval(syncDown,45000);});
 }
 async function tryUnlock(pass,remember){
