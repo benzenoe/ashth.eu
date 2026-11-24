@@ -195,7 +195,8 @@ function smsLink(c){
   var body=MODE==='film'?filmMsgFor(c):msgFor(c);
   if(/iPhone|iPad|iPod/.test(ua))return 'sms:+'+digits(c)+'&body='+encodeURIComponent(body);
   if(/Android/.test(ua))return 'sms:+'+digits(c)+'?body='+encodeURIComponent(body);
-  return 'sms:+'+digits(c);
+  /* Mac Messages reads the addresses/body form and opens the chat with the text filled in. */
+  return 'sms://open?addresses=+'+digits(c)+'&body='+encodeURIComponent(body);
 }
 var toastTm=null;
 function toast(t){
@@ -218,8 +219,13 @@ function render(){
     a.addEventListener('click',function(e){
       a.href=noWa?smsLink(c):link(c);
       if(noWa){
-        try{navigator.clipboard.writeText(F?filmMsgFor(c):msgFor(c));}catch(e2){}
-        toast(/iPhone|iPad|iPod|Android/.test(navigator.userAgent)?'Opening Messages — message prefilled (paste it if the box is empty)':'Message copied — paste it into Messages with ⌘V and send');
+        /* Copy first, then open Messages: the copy fails once Messages takes focus. */
+        e.preventDefault();
+        var href=a.href, txt=F?filmMsgFor(c):msgFor(c);
+        var go=function(){window.location.href=href;};
+        var p0=null;try{p0=navigator.clipboard.writeText(txt);}catch(e2){}
+        (p0&&p0.then?p0:Promise.resolve()).then(go,go);
+        toast('Opening Messages with the message filled in — if the box is empty, paste with ⌘V (it is copied) and send');
       }
       D[c.p]=true;tr.className='sent';tr.querySelector('input').checked=true;save();pushSet(c,true,F?'film':'');
     });
